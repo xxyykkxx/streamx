@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils
 
 import scala.collection.mutable.ListBuffer
 
-
 object FlinkUtils {
   private lazy val ENV_JAVA_OPTS_PATTERN = Pattern.compile("-Denv.java.opts\\s*=\\s*\".*\"")
 

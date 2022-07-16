@@ -715,10 +715,7 @@ export default {
   data() {
     return {
       api,
-      baseUrl: baseUrl(),
       app: null,
-      curlTemplate: `curl -X POST '{requestUrl}' \\\n-H 'Content-Type: application/x-www-form-urlencoded' \\\n-H 'Authorization: {替换成accessToken}' \\\n{form-data} -i
-      `,
       options: {},
       defaultConfigId: null,
       allConfigVersions: null,

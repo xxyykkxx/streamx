@@ -22,16 +22,16 @@ package com.streamxhub.streamx.flink.packer.pipeline.impl
 import com.github.dockerjava.api.command.PushImageCmd
 import com.github.dockerjava.core.command.{HackBuildImageCmd, HackPullImageCmd, HackPushImageCmd}
 import com.google.common.collect.Sets
-import com.streamxhub.streamx.common.conf.CommonConfig.DOCKER_IMAGE_NAMESPACE
-import com.streamxhub.streamx.common.conf.InternalConfigHolder
 import com.streamxhub.streamx.common.enums.DevelopmentMode
 import com.streamxhub.streamx.common.fs.LfsOperator
 import com.streamxhub.streamx.common.util.ThreadUtils
 import com.streamxhub.streamx.flink.kubernetes.PodTemplateTool
+import com.streamxhub.streamx.flink.kubernetes.network.FlinkJobIngress
 import com.streamxhub.streamx.flink.packer.docker._
 import com.streamxhub.streamx.flink.packer.maven.MavenTool
 import com.streamxhub.streamx.flink.packer.pipeline.BuildPipeline.executor
 import com.streamxhub.streamx.flink.packer.pipeline._
+import org.apache.commons.lang3.StringUtils
 
 import java.io.File
 import java.util.concurrent.{LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
@@ -123,11 +123,11 @@ class FlinkK8sApplicationBuildPipeline(request: FlinkK8sApplicationBuildRequest)
         dockerFile -> dockerFileTemplate
       }.getOrElse(throw getError.exception)
 
-    val authConf = request.dockerAuthConfig
+    val dockerConf = request.dockerConfig
     val baseImageTag = request.flinkBaseImage
     val pushImageTag = {
       val expectedImageTag = s"streamxflinkjob-${request.k8sNamespace}-${request.clusterId}"
-      compileTag(expectedImageTag, authConf.registerAddress)
+      compileTag(expectedImageTag, dockerConf.registerAddress, dockerConf.imageNamespace)
     }
 
     // Step-5: pull flink base image
@@ -137,10 +137,10 @@ class FlinkK8sApplicationBuildPipeline(request: FlinkK8sApplicationBuildRequest)
           val pullImageCmd = {
             // when the register address prefix is explicitly identified on base image tag,
             // the user's pre-saved docker register auth info would be used.
-            if (!baseImageTag.startsWith(authConf.registerAddress)) {
+            if (!baseImageTag.startsWith(dockerConf.registerAddress)) {
               dockerClient.pullImageCmd(baseImageTag)
             } else {
-              dockerClient.pullImageCmd(baseImageTag).withAuthConfig(authConf.toDockerAuthConf)
+              dockerClient.pullImageCmd(baseImageTag).withAuthConfig(dockerConf.toAuthConf)
             }
           }
           val pullCmdCallback = pullImageCmd.asInstanceOf[HackPullImageCmd]
@@ -180,7 +180,7 @@ class FlinkK8sApplicationBuildPipeline(request: FlinkK8sApplicationBuildRequest)
         dockerClient =>
           val pushCmd: PushImageCmd = dockerClient
             .pushImageCmd(pushImageTag)
-            .withAuthConfig(authConf.toDockerAuthConf)
+            .withAuthConfig(dockerConf.toAuthConf)
 
           val pushCmdCallback = pushCmd.asInstanceOf[HackPushImageCmd]
             .start(watchDockerPushProcess {
@@ -193,6 +193,19 @@ class FlinkK8sApplicationBuildPipeline(request: FlinkK8sApplicationBuildRequest)
       }(err => throw new Exception(s"push docker image failed. tag=${pushImageTag}", err))
     }.getOrElse(throw getError.exception)
 
+    // Step-8:  init build workspace of ingress
+    val ingressOutputPath = request.ingressTemplate match {
+      case ingress if StringUtils.isBlank(ingress) =>
+        skipStep(8)
+        ""
+      case _ =>
+        execStep(8) {
+          val ingressOutputPath = FlinkJobIngress.prepareIngressTemplateFiles(buildWorkspace, request.ingressTemplate)
+          logInfo(s"export flink ingress: ${ingressOutputPath}")
+          ingressOutputPath
+        }.getOrElse(throw getError.exception)
+    }
+
     DockerImageBuildResponse(buildWorkspace, pushImageTag, podTemplatePaths, dockerFileTemplate.innerMainJarPath)
   }
 
@@ -200,9 +213,8 @@ class FlinkK8sApplicationBuildPipeline(request: FlinkK8sApplicationBuildRequest)
   /**
    * compile image tag with namespace and remote address.
    */
-  private[this] def compileTag(tag: String, registerAddress: String): String = {
-    val imgNamespace: String = InternalConfigHolder.get(DOCKER_IMAGE_NAMESPACE)
-    var tagName = if (tag.contains("/")) tag else s"$imgNamespace/$tag"
+  private[this] def compileTag(tag: String, registerAddress: String, imageNamespace: String): String = {
+    var tagName = if (tag.contains("/")) tag else s"$imageNamespace/$tag"
     if (registerAddress.nonEmpty && !tagName.startsWith(registerAddress)) {
       tagName = s"$registerAddress/$tagName"
     }

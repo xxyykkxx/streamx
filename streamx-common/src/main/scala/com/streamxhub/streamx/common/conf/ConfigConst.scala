@@ -116,8 +116,6 @@ object ConfigConst {
 
   val KEY_YARN_APP_QUEUE = "yarn.application.queue"
 
-  val KEY_FLINK_SAVEPOINT_PATH = "execution.savepoint.path"
-
   // --checkpoints--
   val KEY_FLINK_CHECKPOINTS_ENABLE = "flink.checkpoints.enable"
 
@@ -136,6 +134,8 @@ object ConfigConst {
   val KEY_FLINK_CHECKPOINTS_MIN_PAUSEBETWEEN = "flink.checkpoints.minPauseBetween"
 
   //---state---
+
+  val KEY_FLINK_STATE_SAVEPOINTS_DIR = "flink.state.savepoints.dir"
 
   val KEY_FLINK_STATE_CHECKPOINTS_DIR = "flink.state.checkpoints.dir"
 
@@ -254,23 +254,6 @@ object ConfigConst {
   val KEY_INFLUX_FLUSH_DURATION = "flush.duration"
 
   /**
-   * about config doris
-   */
-  val DORIS_SINK_PREFIX = "doris.sink"
-  val DORIS_FENODES = "fenodes"
-  val DORIS_DATABASE = "database"
-  val DORIS_TABLE = "table"
-  val DORIS_USER = "user"
-  val DORIS_PASSWORD = "password"
-  val DORIS_BATCHSIZE = "batchSize"
-  val DORIS_DEFAULT_BATCHSIZE = "100"
-  val DORIS_INTERVALMS = "intervalMs"
-  val DORIS_DEFAULT_INTERVALMS = "3000"
-  val DORIS_MAXRETRIES = "maxRetries"
-  val DORIS_DEFAULT_MAXRETRIES = "1"
-  val DORIS_STREAM_LOAD_PROP_PREFIX = "streamLoad."
-
-  /**
    * flink config key
    */
   val KEY_FLINK_APPLICATION_ARGS = "$internal.application.program-args"
@@ -301,7 +284,7 @@ object ConfigConst {
     println("\n       WebSite:  http://www.streamxhub.com            ")
     println("       GitHub :  https://github.com/streamxhub/streamx  ")
     println("       Gitee  :  https://gitee.com/streamxhub/streamx   ")
-    println("       Ver    :  1.2.3                                  ")
+    println("       Ver    :  1.2.4                                  ")
     println(s"       Info   :  $info                                 ")
     println(s"       Time   :  ${LocalDateTime.now}              \n\n")
     // scalastyle:on println

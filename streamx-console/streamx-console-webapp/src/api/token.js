@@ -21,7 +21,6 @@
 import api from './index'
 import http from '@/utils/request'
 
-
 export function list (queryParam) {
   return http.post(api.Token.LIST, queryParam)
 }
