@@ -19,6 +19,8 @@
 
 package com.streamxhub.streamx.flink.repl.shell;
 
+import java.net.URL;
+import java.util.List;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.InvalidProgramException;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -28,9 +30,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.graph.StreamGraph;
 import org.apache.flink.util.JarUtils;
 import static org.apache.flink.util.Preconditions.checkNotNull;
-
-import java.net.URL;
-import java.util.List;
 
 /**
  * A {@link StreamExecutionEnvironment} for the Scala shell.

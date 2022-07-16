@@ -19,6 +19,10 @@
 
 package com.streamxhub.streamx.flink.repl.shell;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.InvalidProgramException;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -30,11 +34,6 @@ import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.util.JarUtils;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 
 @Internal
